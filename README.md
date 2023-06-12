@@ -49,5 +49,5 @@ vagrant up
 
 Для изменения режима роутинга с симметричного на асимметричный или наоборот, небоходимо внести изменения в значение переменной `symmetric_routing` и выполнить из корневого каталога:
 ```
-ansible-playbook -i ansible/hosts -l all ansible/provision.yml -t setup_ospf -e "host_key_checking=false"
+ansible-playbook -i ansible/hosts -l all ansible/provision.yml -t setup_ospf
 ```
