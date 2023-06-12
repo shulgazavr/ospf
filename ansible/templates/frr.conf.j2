@@ -1,0 +1,97 @@
+frr version 8.1
+frr defaults traditional
+hostname {{ ansible_hostname }}
+log syslog informational
+no ipv6 forwarding
+service integrated-vtysh-config
+!
+interface enp0s8
+{% if ansible_hostname == 'R1' %}
+description R1-R2
+{% elif ansible_hostname == 'R2' %}
+description R1-R2
+{% else %}
+description R1-R3
+{% endif %}
+{% if ansible_hostname == 'R1' %}
+ip address {{ R1_ip_enp0s8 }}
+{% elif ansible_hostname == 'R2' %}
+ip address {{ R2_ip_enp0s8 }}
+{% else %}
+ip address {{ R3_ip_enp0s8 }}
+{% endif %}
+ip ospf mtu-ignore
+{% if ansible_hostname == 'R1' %}
+ip ospf cost 1000
+{% elif ansible_hostname == 'R2' and symmetric_routing == true %}
+ip ospf cost 1000
+{% else %}
+!ip ospf cost 450
+{% endif %}
+ip ospf hello-interval 10
+ip ospf dead-interval 30
+!
+interface enp0s9
+{% if ansible_hostname == 'R1' %}
+description R1-R3
+{% elif ansible_hostname == 'R2' %}
+description R2-R3
+{% else %}
+description R2-R3
+{% endif %}
+{% if ansible_hostname == 'R1' %}
+ip address {{ R1_ip_enp0s9 }}
+{% elif ansible_hostname == 'R2' %}
+ip address {{ R2_ip_enp0s9 }}
+{% else %}
+ip address {{ R3_ip_enp0s9 }}
+{% endif %}
+ip ospf mtu-ignore
+!ip ospf cost 45
+ip ospf hello-interval 10
+ip ospf dead-interval 30
+!
+interface enp0s10
+{% if ansible_hostname == 'R1' %}
+description N1
+{% elif ansible_hostname == 'R2' %}
+description N2
+{% else %}
+description N3
+{% endif %}
+{% if ansible_hostname == 'R1' %}
+ip address {{ R1_ip_enp0s10 }}
+{% elif ansible_hostname == 'R2' %}
+ip address {{ R2_ip_enp0s10 }}
+{% else %}
+ip address {{ R3_ip_enp0s10 }}
+{% endif %}
+ip ospf mtu-ignore
+!ip ospf cost 45
+ip ospf hello-interval 10
+ip ospf dead-interval 30
+!
+router ospf
+{% if router_id_enable == false %}!{% endif %}router-id {{ router_id }}
+{% if ansible_hostname == 'R1' %}
+network 10.0.10.0/30 area 0
+network 10.0.12.0/30 area 0
+network 192.168.10.0/24 area 0
+neighbor 10.0.10.2
+neighbor 10.0.12.2
+{% elif ansible_hostname == 'R2' %}
+network 10.0.10.0/30 area 0
+network 10.0.11.0/30 area 0
+network 192.168.20.0/24 area 0
+neighbor 10.0.10.1
+neighbor 10.0.11.2
+{% else %}
+network 10.0.11.0/30 area 0
+network 10.0.12.0/30 area 0
+network 192.168.30.0/24 area 0
+neighbor 10.0.11.2
+neighbor 10.0.12.1
+{% endif %}
+!
+log file /var/log/frr/frr.log
+default-information originate always
